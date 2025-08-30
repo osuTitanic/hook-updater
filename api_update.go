@@ -7,13 +7,9 @@ import (
 )
 
 func UpdateHandler(ctx *Context) {
-	request, err := NewUpdateRequest(ctx.Request)
-	if err != nil {
-		ctx.Response.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	request := NewUpdateRequest(ctx.Request)
 
-	if !request.HasData() {
+	if request.releaseType == "" {
 		ctx.Response.Header().Set("Content-Type", "application/json")
 		ctx.Response.WriteHeader(http.StatusOK)
 		json.NewEncoder(ctx.Response).Encode(ctx.Server.Manager.LatestRelease)
@@ -47,25 +43,13 @@ type UpdateRequest struct {
 	releaseChecksum string
 }
 
-func (request *UpdateRequest) HasData() bool {
-	return request.releaseType != "" && request.releaseChecksum != ""
-}
-
-func NewUpdateRequest(request *http.Request) (*UpdateRequest, error) {
+func NewUpdateRequest(request *http.Request) *UpdateRequest {
 	query := request.URL.Query()
 	releaseType := query.Get("type")
 	releaseChecksum := query.Get("checksum")
 
-	// Either both are empty or both are given
-	isEmpty := releaseType == "" && releaseChecksum == ""
-	isGiven := releaseType != "" && releaseChecksum != ""
-
-	if isEmpty || isGiven {
-		return &UpdateRequest{
-			releaseType:     releaseType,
-			releaseChecksum: releaseChecksum,
-		}, nil
+	return &UpdateRequest{
+		releaseType:     releaseType,
+		releaseChecksum: releaseChecksum,
 	}
-
-	return nil, fmt.Errorf("invalid update request")
 }
