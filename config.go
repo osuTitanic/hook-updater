@@ -16,8 +16,9 @@ type Config struct {
 		Host string `json:"host"`
 		Port int    `json:"port"`
 	} `json:"server"`
-	ReleaseTypes []ReleaseType `json:"releaseTypes"`
-	DataFolder   string
+	ReleaseTypes   []ReleaseType `json:"releaseTypes"`
+	UpdateInterval string        `json:"updateInterval"`
+	DataFolder     string
 }
 
 func (config *Config) ReleaseFolder() string {

@@ -17,5 +17,6 @@
             "identifier": "net40"
         }
     ],
+    "updateInterval": "5m",
     "dataFolder": ".data/"
 }
