@@ -91,16 +91,25 @@ func (item *ReleaseItem) Download(targetFolder string) error {
 		return err
 	}
 
-	// Update checksum
+	// Update checksum with file contents
 	hash := sha256.New()
-	hash.Write([]byte(item.Filename))
+	if _, err := io.Copy(hash, out); err != nil {
+		return err
+	}
 	item.Checksum = fmt.Sprintf("%x", hash.Sum(nil))
 	return nil
 }
 
 func (item *ReleaseItem) DownloadIfNotExists(targetFolder string) error {
 	filePath := filepath.Join(targetFolder, item.Filename)
-	if _, err := os.Stat(filePath); err == nil {
+	if file, err := os.Open(filePath); err == nil {
+		// File exists, update checksum
+		defer file.Close()
+		hash := sha256.New()
+		if _, err := io.Copy(hash, file); err != nil {
+			return err
+		}
+		item.Checksum = fmt.Sprintf("%x", hash.Sum(nil))
 		return nil
 	}
 	return item.Download(targetFolder)
