@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"reflect"
-	"strings"
 	"time"
-	"unicode"
 )
 
 const (
@@ -201,89 +198,4 @@ func concatMessage(msg ...any) string {
 	}
 
 	return log
-}
-
-// FormatBytes returns a string representation of a byte slice
-// similar to how python handles byte strings
-func FormatBytes(data []byte) string {
-	result := ""
-	for _, b := range data {
-		if unicode.IsPrint(rune(b)) {
-			// Append ASCII character to result
-			result += fmt.Sprintf("%c", b)
-		} else {
-			// Append \xhh for non-printable characters
-			result += fmt.Sprintf("\\x%02x", b)
-		}
-	}
-	return result
-}
-
-// FormatStruct returns a string representation of a struct
-func FormatStruct(s interface{}) string {
-	v := reflect.ValueOf(s)
-	t := v.Type()
-
-	// Check if the value is a pointer and dereference it
-	if t.Kind() == reflect.Ptr {
-		v = v.Elem()
-		t = v.Type()
-	}
-
-	// Ensure we're dealing with a struct
-	if t.Kind() != reflect.Struct {
-		return fmt.Sprintf("%v", s)
-	}
-
-	var sb strings.Builder
-	sb.WriteString(t.Name() + "{")
-
-	for i := 0; i < v.NumField(); i++ {
-		field := t.Field(i)
-		value := v.Field(i)
-
-		// Skip unexported fields
-		if !field.IsExported() {
-			continue
-		}
-
-		// Append field name and formatted value
-		sb.WriteString(fmt.Sprintf("%s: %s", field.Name, FormatValue(value)))
-
-		if i < v.NumField()-1 {
-			sb.WriteString(", ")
-		}
-	}
-
-	sb.WriteString("}")
-	return sb.String()
-}
-
-// FormatValue handles different types and returns the formatted string
-func FormatValue(v reflect.Value) string {
-	defer recover()
-	switch v.Kind() {
-	case reflect.String:
-		return fmt.Sprintf("\"%s\"", v.String())
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return fmt.Sprintf("%d", v.Uint())
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return fmt.Sprintf("%d", v.Int())
-	case reflect.Float32, reflect.Float64:
-		return fmt.Sprintf("%f", v.Float())
-	case reflect.Bool:
-		return fmt.Sprintf("%t", v.Bool())
-	case reflect.Slice:
-		if v.Type().Elem().Kind() == reflect.Uint8 {
-			return fmt.Sprintf("%v", v.Bytes())
-		}
-		return fmt.Sprintf("%v", v.Interface())
-	case reflect.Struct:
-		if v.Type() == reflect.TypeOf(time.Time{}) {
-			return v.Interface().(time.Time).Format(time.RFC3339)
-		}
-		return FormatStruct(v.Interface())
-	default:
-		return fmt.Sprintf("%v", v.Interface())
-	}
 }
