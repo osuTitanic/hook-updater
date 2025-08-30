@@ -34,9 +34,11 @@ func (server *Server) Bind() string {
 
 func (server *Server) Serve() {
 	server.Logger.Infof("Listening on %s", server.Bind())
+	fileServer := http.FileServer(http.Dir(server.Config.ReleaseFolder()))
 
 	r := mux.NewRouter()
 	r.HandleFunc("/update", server.contextMiddleware(UpdateHandler)).Methods("GET")
+	r.PathPrefix("/releases").Handler(http.StripPrefix("/releases/", fileServer)).Methods("GET")
 
 	loggedMux := server.loggingMiddleware(r)
 	http.ListenAndServe(server.Bind(), loggedMux)
