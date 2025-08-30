@@ -102,17 +102,20 @@ func (item *ReleaseItem) Download(targetFolder string) error {
 
 func (item *ReleaseItem) DownloadIfNotExists(targetFolder string) error {
 	filePath := filepath.Join(targetFolder, item.Filename)
-	if file, err := os.Open(filePath); err == nil {
-		// File exists, update checksum
-		defer file.Close()
-		hash := sha256.New()
-		if _, err := io.Copy(hash, file); err != nil {
-			return err
-		}
-		item.Checksum = fmt.Sprintf("%x", hash.Sum(nil))
-		return nil
+	file, err := os.Open(filePath)
+	if err != nil {
+		// Download file from GitHub
+		return item.Download(targetFolder)
 	}
-	return item.Download(targetFolder)
+
+	// Update checksum from existing file
+	defer file.Close()
+	hash := sha256.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return err
+	}
+	item.Checksum = fmt.Sprintf("%x", hash.Sum(nil))
+	return nil
 }
 
 type ReleaseMetadata struct {
@@ -123,6 +126,7 @@ type ReleaseMetadata struct {
 }
 
 func (metadata *ReleaseMetadata) DownloadAll(targetFolder string) error {
+	// Ensure target folder exists
 	if err := os.MkdirAll(targetFolder, 0755); err != nil {
 		return err
 	}
