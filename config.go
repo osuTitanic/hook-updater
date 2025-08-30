@@ -18,7 +18,7 @@ type Config struct {
 	} `json:"server"`
 	ReleaseTypes   []ReleaseType `json:"releaseTypes"`
 	UpdateInterval string        `json:"updateInterval"`
-	DataFolder     string
+	DataFolder     string        `json:"dataFolder"`
 }
 
 func (config *Config) ReleaseFolder() string {
