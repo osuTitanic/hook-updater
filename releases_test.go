@@ -10,7 +10,7 @@ func TestReleases(t *testing.T) {
 	}
 
 	manager := NewReleaseManager(cfg)
-	_, err = manager.UpdateReleases()
+	err = manager.DownloadAndUpdateLatestRelease()
 	if err != nil {
 		t.Fatal(err)
 		return

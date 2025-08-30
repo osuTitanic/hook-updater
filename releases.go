@@ -13,6 +13,8 @@ import (
 )
 
 type ReleaseManager struct {
+	LatestRelease *ReleaseMetadata
+
 	context context.Context
 	client  *github.Client
 	config  *Config
@@ -26,52 +28,41 @@ func NewReleaseManager(config *Config) *ReleaseManager {
 	}
 }
 
-func (manager *ReleaseManager) UpdateReleases() ([]*ReleaseMetadata, error) {
-	releases, err := manager.FetchReleases()
+func (manager *ReleaseManager) DownloadAndUpdateLatestRelease() error {
+	release, err := manager.fetchLatestRelease()
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	for _, release := range releases {
-		targetFolder := filepath.Join(manager.config.ReleaseFolder(), release.TagName)
-		release.DownloadAll(targetFolder)
-	}
-
-	return releases, nil
+	targetFolder := filepath.Join(manager.config.ReleaseFolder(), release.TagName)
+	release.DownloadAll(targetFolder)
+	manager.LatestRelease = release
+	return nil
 }
 
-func (manager *ReleaseManager) FetchReleases() ([]*ReleaseMetadata, error) {
-	repoReleases, _, err := manager.client.Repositories.ListReleases(
+func (manager *ReleaseManager) fetchLatestRelease() (*ReleaseMetadata, error) {
+	repoRelease, _, err := manager.client.Repositories.GetLatestRelease(
 		manager.context,
 		manager.config.GitHub.Owner,
 		manager.config.GitHub.Repository,
-		&github.ListOptions{PerPage: 100},
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	releases := make([]*ReleaseMetadata, 0, len(repoReleases))
-	for _, release := range repoReleases {
-		releaseMetadata := &ReleaseMetadata{
-			Name:    release.GetName(),
-			Commit:  release.GetTargetCommitish(),
-			TagName: release.GetTagName(),
-			Items:   make([]*ReleaseItem, len(release.Assets)),
-		}
-
-		for i, asset := range release.Assets {
-			releaseMetadata.Items[i] = &ReleaseItem{
-				Filename: asset.GetName(),
-				Size:     asset.GetSize(),
-				Url:      asset.GetBrowserDownloadURL(),
-			}
-		}
-
-		releases = append(releases, releaseMetadata)
+	metadata := &ReleaseMetadata{
+		Name:    repoRelease.GetName(),
+		Commit:  repoRelease.GetTargetCommitish(),
+		TagName: repoRelease.GetTagName(),
+		Items:   make([]*ReleaseItem, len(repoRelease.Assets)),
 	}
-
-	return releases, nil
+	for i, asset := range repoRelease.Assets {
+		metadata.Items[i] = &ReleaseItem{
+			Filename: asset.GetName(),
+			Size:     asset.GetSize(),
+			Url:      asset.GetBrowserDownloadURL(),
+		}
+	}
+	return metadata, nil
 }
 
 type ReleaseItem struct {
