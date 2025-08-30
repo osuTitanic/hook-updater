@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -16,6 +17,11 @@ type Config struct {
 		Port int    `json:"port"`
 	} `json:"server"`
 	ReleaseTypes []ReleaseType `json:"releaseTypes"`
+	DataFolder   string
+}
+
+func (config *Config) ReleaseFolder() string {
+	return filepath.Join(config.DataFolder, "releases")
 }
 
 type ReleaseType struct {

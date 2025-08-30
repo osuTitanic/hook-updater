@@ -16,5 +16,6 @@
             "filename": "Titanic.net40.exe",
             "identifier": "net40"
         }
-    ]
+    ],
+    "dataFolder": ".data/"
 }
