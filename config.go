@@ -8,8 +8,8 @@ import (
 
 type Config struct {
 	GitHub struct {
-		Organization string `json:"organization"`
-		Repository   string `json:"repository"`
+		Owner      string `json:"owner"`
+		Repository string `json:"repository"`
 	} `json:"github"`
 	Server struct {
 		Host string `json:"host"`

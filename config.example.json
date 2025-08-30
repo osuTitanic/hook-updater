@@ -1,6 +1,6 @@
 {
     "github": {
-        "organization": "osuTitanic",
+        "owner": "osuTitanic",
         "repository": "hook"
     },
     "server": {

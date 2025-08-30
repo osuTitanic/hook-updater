@@ -17,7 +17,7 @@ func TestConfig(t *testing.T) {
 		return
 	}
 
-	t.Logf("GitHub: %s/%s", cfg.GitHub.Organization, cfg.GitHub.Repository)
+	t.Logf("GitHub: %s/%s", cfg.GitHub.Owner, cfg.GitHub.Repository)
 	t.Logf("Server: %s:%d\n", cfg.Server.Host, cfg.Server.Port)
 
 	for _, release := range cfg.ReleaseTypes {
