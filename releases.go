@@ -124,3 +124,12 @@ func (metadata *ReleaseMetadata) DownloadAll(targetFolder string) error {
 	}
 	return nil
 }
+
+func (metadata *ReleaseMetadata) GetItemByFilename(filename string) *ReleaseItem {
+	for _, item := range metadata.Items {
+		if item.Filename == filename {
+			return item
+		}
+	}
+	return nil
+}

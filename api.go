@@ -8,16 +8,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Server struct {
-	Config  *Config
-	Logger  *Logger
-	Manager *ReleaseManager
-}
-
 type Context struct {
 	Response http.ResponseWriter
 	Request  *http.Request
 	Server   *Server
+}
+
+type Server struct {
+	Config  *Config
+	Logger  *Logger
+	Manager *ReleaseManager
 }
 
 func NewServer(config *Config, manager *ReleaseManager) *Server {

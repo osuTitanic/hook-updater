@@ -21,13 +21,22 @@ type Config struct {
 	DataFolder     string        `json:"dataFolder"`
 }
 
+type ReleaseType struct {
+	Filename   string `json:"filename"`
+	Identifier string `json:"identifier"`
+}
+
 func (config *Config) ReleaseFolder() string {
 	return filepath.Join(config.DataFolder, "releases")
 }
 
-type ReleaseType struct {
-	Filename   string `json:"filename"`
-	Identifier string `json:"identifier"`
+func (config *Config) GetReleaseTypeByIdentifier(identifier string) *ReleaseType {
+	for _, releaseType := range config.ReleaseTypes {
+		if releaseType.Identifier == identifier {
+			return &releaseType
+		}
+	}
+	return nil
 }
 
 func LoadConfig(path string) (*Config, error) {
