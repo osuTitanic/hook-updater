@@ -18,7 +18,7 @@ func UpdateHandler(ctx *Context) {
 
 	releaseType := ctx.Server.Config.GetReleaseTypeByIdentifier(request.releaseType)
 	if releaseType == nil {
-		ctx.Response.WriteHeader(http.StatusBadRequest)
+		ctx.Response.WriteHeader(http.StatusNotFound)
 		return
 	}
 
