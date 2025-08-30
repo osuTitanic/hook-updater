@@ -14,8 +14,8 @@ func UpdateHandler(ctx *Context) {
 	}
 
 	if !request.HasData() {
-		ctx.Response.WriteHeader(http.StatusOK)
 		ctx.Response.Header().Set("Content-Type", "application/json")
+		ctx.Response.WriteHeader(http.StatusOK)
 		json.NewEncoder(ctx.Response).Encode(ctx.Server.Manager.LatestRelease)
 		return
 	}
