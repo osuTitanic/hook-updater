@@ -1,0 +1,20 @@
+{
+    "github": {
+        "organization": "osuTitanic",
+        "repository": "hook"
+    },
+    "server": {
+        "host": "127.0.0.1",
+        "port": 8080
+    },
+    "releaseTypes": [
+        {
+            "filename": "Titanic.net20.exe",
+            "identifier": "net20"
+        },
+        {
+            "filename": "Titanic.net40.exe",
+            "identifier": "net40"
+        }
+    ]
+}
