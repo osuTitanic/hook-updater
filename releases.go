@@ -91,6 +91,12 @@ func (item *ReleaseItem) Download(targetFolder string) error {
 		return err
 	}
 
+	// Seek to 0 for checksum calculation
+	_, err = out.Seek(0, 0)
+	if err != nil {
+		return err
+	}
+
 	// Update checksum with file contents
 	hash := sha256.New()
 	if _, err := io.Copy(hash, out); err != nil {
