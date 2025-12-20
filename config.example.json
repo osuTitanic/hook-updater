@@ -9,11 +9,11 @@
     },
     "releaseTypes": [
         {
-            "filename": "Titanic.net20.exe",
+            "filename": "Titanic.fallback.exe",
             "identifier": "net20"
         },
         {
-            "filename": "Titanic.net40.exe",
+            "filename": "Titanic.exe",
             "identifier": "net40"
         }
     ],
