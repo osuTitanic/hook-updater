@@ -16,9 +16,17 @@ type Config struct {
 		Host string `json:"host"`
 		Port int    `json:"port"`
 	} `json:"server"`
-	ReleaseTypes   []ReleaseType `json:"releaseTypes"`
-	UpdateInterval string        `json:"updateInterval"`
-	DataFolder     string        `json:"dataFolder"`
+	SignatureVerification SignatureConfig `json:"signatureVerification"`
+	ReleaseTypes          []ReleaseType   `json:"releaseTypes"`
+	UpdateInterval        string          `json:"updateInterval"`
+	DataFolder            string          `json:"dataFolder"`
+}
+
+type SignatureConfig struct {
+	Enabled            *bool    `json:"enabled"`
+	OsslsigncodePath   string   `json:"osslsigncodePath"`
+	RequiredLeafSha256 string   `json:"RequiredLeafSha256"`
+	RequiredExtensions []string `json:"requiredExtensions"`
 }
 
 type ReleaseType struct {
