@@ -20,10 +20,19 @@ COPY . .
 # Build
 RUN CGO_ENABLED=1 go build -o api .
 
+FROM vegardit/osslsigncode:latest-alpine AS osslsigncode
+
 FROM alpine
 
 WORKDIR /app
+RUN apk add --no-cache \
+      ca-certificates \
+      libcrypto3 \
+      libssl3 \
+      zlib
+
 COPY --from=build /app/api /app/api
+COPY --from=osslsigncode /usr/local/bin/osslsigncode /usr/local/bin/osslsigncode
 
 # Create data & config volume
 VOLUME ["/app/.data", "/app/config.json"]
