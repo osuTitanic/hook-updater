@@ -9,7 +9,11 @@ func TestReleases(t *testing.T) {
 		return
 	}
 
-	manager := NewReleaseManager(cfg)
+	manager, err := NewReleaseManager(cfg)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
 	err = manager.DownloadAndUpdateLatestRelease()
 	if err != nil {
 		t.Fatal(err)
