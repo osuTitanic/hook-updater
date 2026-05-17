@@ -15,17 +15,24 @@ import (
 type ReleaseManager struct {
 	LatestRelease *ReleaseMetadata
 
-	context context.Context
-	client  *github.Client
-	config  *Config
+	context  context.Context
+	client   *github.Client
+	config   *Config
+	verifier *SignatureVerifier
 }
 
-func NewReleaseManager(config *Config) *ReleaseManager {
-	return &ReleaseManager{
-		context: context.Background(),
-		client:  github.NewClient(nil),
-		config:  config,
+func NewReleaseManager(config *Config) (*ReleaseManager, error) {
+	verifier, err := NewSignatureVerifier(config)
+	if err != nil {
+		return nil, err
 	}
+
+	return &ReleaseManager{
+		context:  context.Background(),
+		client:   github.NewClient(nil),
+		config:   config,
+		verifier: verifier,
+	}, nil
 }
 
 func (manager *ReleaseManager) DownloadAndUpdateLatestRelease() error {
@@ -33,8 +40,14 @@ func (manager *ReleaseManager) DownloadAndUpdateLatestRelease() error {
 	if err != nil {
 		return err
 	}
-	targetFolder := filepath.Join(manager.config.ReleaseFolder(), release.TagName)
-	release.DownloadAll(targetFolder)
+
+	targetFolder := filepath.Join(
+		manager.config.ReleaseFolder(),
+		release.TagName,
+	)
+	if err := release.DownloadAll(targetFolder, manager.verifier); err != nil {
+		return err
+	}
 	manager.LatestRelease = release
 	return nil
 }
@@ -72,56 +85,73 @@ type ReleaseItem struct {
 	Url      string `json:"url"`
 }
 
-func (item *ReleaseItem) Download(targetFolder string) error {
+func (item *ReleaseItem) Download(targetFolder string, verifier *SignatureVerifier) error {
 	filePath := filepath.Join(targetFolder, item.Filename)
 	out, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
 
 	response, err := http.Get(item.Url)
 	if err != nil {
+		out.Close()
 		return err
 	}
 	defer response.Body.Close()
 
 	_, err = io.Copy(out, response.Body)
 	if err != nil {
+		out.Close()
 		return err
 	}
 
-	// Seek to 0 for checksum calculation
-	_, err = out.Seek(0, 0)
+	if err := out.Close(); err != nil {
+		return err
+	}
+
+	if err := verifier.Verify(filePath); err != nil {
+		os.Remove(filePath)
+		return fmt.Errorf("signature verification failed for %s: %w", item.Filename, err)
+	}
+
+	checksum, err := calculateFileChecksum(filePath)
 	if err != nil {
 		return err
 	}
-
-	// Update checksum with file contents
-	hash := sha256.New()
-	if _, err := io.Copy(hash, out); err != nil {
-		return err
-	}
-	item.Checksum = fmt.Sprintf("%x", hash.Sum(nil))
+	item.Checksum = checksum
 	return nil
 }
 
-func (item *ReleaseItem) DownloadIfNotExists(targetFolder string) error {
+func (item *ReleaseItem) DownloadIfNotExists(targetFolder string, verifier *SignatureVerifier) error {
 	filePath := filepath.Join(targetFolder, item.Filename)
-	file, err := os.Open(filePath)
-	if err != nil {
+	if _, err := os.Stat(filePath); err != nil {
 		// Download file from GitHub
-		return item.Download(targetFolder)
+		return item.Download(targetFolder, verifier)
 	}
 
-	// Update checksum from existing file
+	if err := verifier.Verify(filePath); err != nil {
+		return fmt.Errorf("signature verification failed for cached %s: %w", item.Filename, err)
+	}
+
+	checksum, err := calculateFileChecksum(filePath)
+	if err != nil {
+		return err
+	}
+	item.Checksum = checksum
+	return nil
+}
+
+func calculateFileChecksum(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
 	defer file.Close()
 	hash := sha256.New()
 	if _, err := io.Copy(hash, file); err != nil {
-		return err
+		return "", err
 	}
-	item.Checksum = fmt.Sprintf("%x", hash.Sum(nil))
-	return nil
+	return fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
 
 type ReleaseMetadata struct {
@@ -131,13 +161,13 @@ type ReleaseMetadata struct {
 	Items   []*ReleaseItem `json:"items"`
 }
 
-func (metadata *ReleaseMetadata) DownloadAll(targetFolder string) error {
+func (metadata *ReleaseMetadata) DownloadAll(targetFolder string, verifier *SignatureVerifier) error {
 	// Ensure target folder exists
 	if err := os.MkdirAll(targetFolder, 0755); err != nil {
 		return err
 	}
 	for _, item := range metadata.Items {
-		if err := item.DownloadIfNotExists(targetFolder); err != nil {
+		if err := item.DownloadIfNotExists(targetFolder, verifier); err != nil {
 			return err
 		}
 	}

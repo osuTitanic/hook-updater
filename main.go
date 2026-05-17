@@ -19,6 +19,8 @@ func ReleaseUpdateLoop(manager *ReleaseManager) {
 		err := manager.DownloadAndUpdateLatestRelease()
 		if err != nil {
 			logger.Error("Failed to update release:", err)
+			time.Sleep(sleepDuration)
+			continue
 		}
 		logger.Infof("Updated to release '%s'", manager.LatestRelease.Name)
 		time.Sleep(sleepDuration)
@@ -31,7 +33,10 @@ func main() {
 		log.Fatal("Failed to load config:", err)
 	}
 
-	manager := NewReleaseManager(config)
+	manager, err := NewReleaseManager(config)
+	if err != nil {
+		log.Fatal("Failed to initialize release manager:", err)
+	}
 	go ReleaseUpdateLoop(manager)
 
 	server := NewServer(config, manager)
