@@ -125,3 +125,4 @@ fabric.properties
 # Application data
 config.json
 .data/
+tmp/
