@@ -25,7 +25,7 @@ type Config struct {
 type SignatureConfig struct {
 	Enabled            bool     `json:"enabled"`
 	OsslsigncodePath   string   `json:"osslsigncodePath"`
-	RequiredLeafSha256 string   `json:"RequiredLeafSha256"`
+	RequiredLeafSha256 string   `json:"requiredLeafSha256"`
 	RequiredExtensions []string `json:"requiredExtensions"`
 }
 

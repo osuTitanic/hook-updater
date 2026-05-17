@@ -20,7 +20,7 @@
     "signatureVerification": {
         "enabled": false,
         "osslsigncodePath": "osslsigncode",
-        "RequiredLeafSha256": "change me",
+        "requiredLeafSha256": "change me",
         "requiredExtensions": [".exe"]
     },
     "updateInterval": "5m",
