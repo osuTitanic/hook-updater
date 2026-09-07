@@ -6,6 +6,6 @@ require github.com/google/go-github v17.0.0+incompatible
 
 require (
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/gorilla/mux v1.8.1
 )
