@@ -124,5 +124,7 @@ fabric.properties
 
 # Application data
 config.json
+*.pem
+*.cer
 .data/
 tmp/
