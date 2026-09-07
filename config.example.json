@@ -21,7 +21,8 @@
         "enabled": false,
         "osslsigncodePath": "osslsigncode",
         "requiredLeafSha256": "change me",
-        "requiredExtensions": [".exe"]
+        "requiredExtensions": [".exe"],
+        "caFile": null
     },
     "updateInterval": "5m",
     "dataFolder": ".data/"

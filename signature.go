@@ -20,6 +20,18 @@ type SignatureVerifier struct {
 	OsslsigncodePath   string
 	RequiredLeafSha256 string
 	RequiredExtensions map[string]bool
+	CAFile             *string
+}
+
+func (verifier *SignatureVerifier) HasCAFile() bool {
+	if verifier.CAFile == nil {
+		return false
+	}
+	if *verifier.CAFile == "" {
+		return false
+	}
+	_, err := exec.LookPath(*verifier.CAFile)
+	return err == nil
 }
 
 func NewSignatureVerifier(config *Config) (*SignatureVerifier, error) {
@@ -36,6 +48,7 @@ func NewSignatureVerifier(config *Config) (*SignatureVerifier, error) {
 
 	verifier := &SignatureVerifier{
 		Enabled:            cfg.Enabled,
+		CAFile:             cfg.CAFile,
 		OsslsigncodePath:   path,
 		RequiredLeafSha256: normalizeFingerprint(cfg.RequiredLeafSha256),
 		RequiredExtensions: make(map[string]bool, len(extensions)),
@@ -80,15 +93,19 @@ func (verifier *SignatureVerifier) Verify(path string) error {
 	defer cancel()
 	var output bytes.Buffer
 
-	command := exec.CommandContext(
-		ctx,
-		verifier.OsslsigncodePath,
+	args := []string{
 		"verify",
 		"-require-leaf-hash",
-		"sha256:"+verifier.RequiredLeafSha256,
+		"sha256:" + verifier.RequiredLeafSha256,
 		"-in",
 		path,
-	)
+	}
+	if verifier.HasCAFile() {
+		// Is not required on unix systems, but on windows it is
+		args = append(args, "-CAfile", *verifier.CAFile)
+	}
+
+	command := exec.CommandContext(ctx, verifier.OsslsigncodePath, args...)
 	command.Stdout = &output
 	command.Stderr = &output
 

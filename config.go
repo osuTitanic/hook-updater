@@ -27,6 +27,7 @@ type SignatureConfig struct {
 	OsslsigncodePath   string   `json:"osslsigncodePath"`
 	RequiredLeafSha256 string   `json:"requiredLeafSha256"`
 	RequiredExtensions []string `json:"requiredExtensions"`
+	CAFile             *string  `json:"caFile"`
 }
 
 type ReleaseType struct {
